@@ -8,5 +8,17 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mangeshtelang/AMIT.git"
+  },
+  "keywords": [],
+  "bugs": {
+    "url": "https://github.com/mangeshtelang/AMIT/issues"
+  },
+  "homepage": "https://github.com/mangeshtelang/AMIT#readme",
+  "dependencies": {
+    "express": "^5.2.1"
   }
 }

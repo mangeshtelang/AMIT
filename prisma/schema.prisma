@@ -1,0 +1,357 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url = env("DATABASE_URL")
+}
+
+// Database schema 
+
+enum entityStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Company{
+id    String @id @default(uuid())
+legalName String
+displayName String?
+registrationNumber String
+taxNumber String
+website String
+email String
+phone  String
+status entityStatus @default(ACTIVE)
+createdAt DateTime @default(now())
+createdBy String
+updatedAt DateTime @updatedAt
+updatedBy String
+departments        Department[]
+  employees          Employee[]
+  machines           Machine[]
+  finishedProducts   FinishedProduct[]
+  workflows          Workflow[]
+  userRoles          UserRole[]
+  worklogs           UserWorklog[]
+}
+
+model Employee {
+  id             String       @id @default(uuid())
+  companyId      String
+  employeeCode   String
+  firstName      String
+  lastName       String
+  email          String       @unique
+  phone          String?
+  dateOfJoining  DateTime?
+  designation    String?
+  status         entityStatus @default(ACTIVE)
+  createdAt      DateTime     @default(now())
+  createdBy      String
+  updatedAt      DateTime     @updatedAt
+  updatedBy      String
+  approvalStatus approvalStatus @default(PENDING)
+  approvedAt     DateTime?
+  approvedBy     String?
+  rejectedAt     DateTime?
+  rejectedBy     String?
+  rejectionReason String?
+  company        Company      @relation(fields: [companyId], references: [id])
+
+  departments    EmployeeDepartment[]
+  userProfile    UserProfile?
+  worklogs       UserWorklog[]
+
+  @@unique([companyId, employeeCode])
+}
+
+model Department {
+  id          String       @id @default(uuid())
+  companyId   String
+  name        String
+  code        String?
+  description String?
+  status      entityStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now())
+  createdBy   String
+  updatedAt   DateTime     @updatedAt
+  updatedBy   String
+
+  company     Company      @relation(fields: [companyId], references: [id])
+
+  sections    Section[]
+  employees   EmployeeDepartment[]
+
+  @@unique([companyId, name])
+}
+
+model EmployeeDepartment {
+  id           String     @id @default(uuid())
+  employeeId   String
+  departmentId String
+  assignedAt   DateTime   @default(now())
+  isPrimary    Boolean    @default(false)
+
+  employee     Employee   @relation(fields: [employeeId], references: [id])
+  department   Department @relation(fields: [departmentId], references: [id])
+
+  @@unique([employeeId, departmentId])
+}
+
+model Section {
+  id           String       @id @default(uuid())
+  departmentId String
+  name         String
+  code         String?
+  description  String?
+  status       entityStatus @default(ACTIVE)
+  createdAt    DateTime     @default(now())
+  createdBy    String
+  updatedAt    DateTime     @updatedAt
+  updatedBy    String
+
+  department   Department   @relation(fields: [departmentId], references: [id])
+
+  machines     Machine[]
+
+  @@unique([departmentId, name])
+}
+
+model Machine {
+  id             String       @id @default(uuid())
+  companyId      String
+  sectionId      String?
+  machineCode    String
+  name           String
+  modelNumber    String?
+  serialNumber   String?
+  manufacturer   String?
+  purchaseDate   DateTime?
+  status         entityStatus @default(ACTIVE)
+  createdAt      DateTime     @default(now())
+  createdBy      String
+  updatedAt      DateTime     @updatedAt
+  updatedBy      String
+  approvalStatus approvalStatus @default(PENDING)
+  approvedAt     DateTime?
+  approvedBy     String?
+  rejectedAt     DateTime?
+  rejectedBy     String?
+  rejectionReason String?
+  company        Company      @relation(fields: [companyId], references: [id])
+  section        Section?     @relation(fields: [sectionId], references: [id])
+
+  worklogs       UserWorklog[]
+
+  @@unique([companyId, machineCode])
+}
+
+model FinishedProduct {
+  id          String       @id @default(uuid())
+  companyId   String
+  sku         String
+  name        String
+  description String?
+  unit        String?
+  status      entityStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now())
+  createdBy   String
+  updatedAt   DateTime     @updatedAt
+  updatedBy   String
+  approvalStatus approvalStatus @default(PENDING)
+  approvedAt     DateTime?
+  approvedBy     String?
+  rejectedAt     DateTime?
+  rejectedBy     String?
+  rejectionReason String?
+  company     Company      @relation(fields: [companyId], references: [id])
+
+  workflows   ProductWorkflow[]
+
+  @@unique([companyId, sku])
+}
+
+model Workflow {
+  id          String       @id @default(uuid())
+  companyId   String
+  name        String
+  description String?
+  status      entityStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now())
+  createdBy   String
+  updatedAt   DateTime     @updatedAt
+  updatedBy   String
+  approvalStatus approvalStatus @default(PENDING)
+  approvedAt     DateTime?
+  approvedBy     String?
+  rejectedAt     DateTime?
+  rejectedBy     String?
+  rejectionReason String?
+  company     Company      @relation(fields: [companyId], references: [id])
+
+  processes   WorkflowProcess[]
+  products    ProductWorkflow[]
+
+  @@unique([companyId, name])
+}
+model Process {
+  id          String       @id @default(uuid())
+  name        String
+  description String?
+  status      entityStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now())
+  createdBy   String
+  updatedAt   DateTime     @updatedAt
+  updatedBy   String
+  approvalStatus approvalStatus @default(PENDING)
+  approvedAt     DateTime?
+  approvedBy     String?
+  rejectedAt     DateTime?
+  rejectedBy     String?
+  rejectionReason String?
+  workflows   WorkflowProcess[]
+  steps       ProcessStep[]
+  worklogs    UserWorklog[]
+}
+
+model Step {
+  id          String       @id @default(uuid())
+  name        String
+  description String?
+  status      entityStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now())
+  createdBy   String
+  updatedAt   DateTime     @updatedAt
+  updatedBy   String
+  approvalStatus approvalStatus @default(PENDING)
+  approvedAt     DateTime?
+  approvedBy     String?
+  rejectedAt     DateTime?
+  rejectedBy     String?
+  rejectionReason String?
+  processes   ProcessStep[]
+  worklogs    UserWorklog[]
+}
+
+model WorkflowProcess {
+  id          String   @id @default(uuid())
+  workflowId  String
+  processId   String
+  sequenceNo  Int
+  
+  workflow    Workflow @relation(fields: [workflowId], references: [id])
+  process     Process  @relation(fields: [processId], references: [id])
+
+  @@unique([workflowId, processId])
+  @@unique([workflowId, sequenceNo])
+}
+
+model ProcessStep {
+  id         String  @id @default(uuid())
+  processId  String
+  stepId     String
+  sequenceNo Int
+
+  process    Process @relation(fields: [processId], references: [id])
+  step       Step    @relation(fields: [stepId], references: [id])
+
+  @@unique([processId, stepId])
+  @@unique([processId, sequenceNo])
+}
+
+model ProductWorkflow {
+  id                String          @id @default(uuid())
+  finishedProductId String
+  workflowId         String
+  isDefault          Boolean         @default(false)
+  status             entityStatus    @default(ACTIVE)
+
+  finishedProduct    FinishedProduct @relation(fields: [finishedProductId], references: [id])
+  workflow           Workflow        @relation(fields: [workflowId], references: [id])
+
+  @@unique([finishedProductId, workflowId])
+}
+
+model UserProfile {
+  id           String       @id @default(uuid())
+  employeeId   String       @unique
+  username     String       @unique
+  passwordHash String
+  status       entityStatus @default(ACTIVE)
+  lastLoginAt  DateTime?
+  createdAt    DateTime     @default(now())
+  createdBy    String
+  updatedAt    DateTime     @updatedAt
+  updatedBy    String
+
+  employee     Employee     @relation(fields: [employeeId], references: [id])
+
+  roles        UserRoleMapping[]
+}
+
+model UserRole {
+  id          String       @id @default(uuid())
+  companyId   String
+  name        String
+  description String?
+  status      entityStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now())
+  createdBy   String
+  updatedAt   DateTime     @updatedAt
+  updatedBy   String
+
+  company     Company      @relation(fields: [companyId], references: [id])
+
+  users       UserRoleMapping[]
+
+  @@unique([companyId, name])
+}
+
+model UserRoleMapping {
+  id            String      @id @default(uuid())
+  userProfileId String
+  roleId        String
+  assignedAt    DateTime    @default(now())
+
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id])
+  role          UserRole    @relation(fields: [roleId], references: [id])
+
+  @@unique([userProfileId, roleId])
+}
+
+model UserWorklog {
+  id          String    @id @default(uuid())
+  companyId   String
+  employeeId  String
+  machineId   String?
+  processId   String?
+  stepId      String?
+  workDate    DateTime  @default(now())
+  startTime   DateTime?
+  endTime     DateTime?
+  remarks     String?
+  createdAt   DateTime  @default(now())
+  createdBy   String
+  updatedAt   DateTime  @updatedAt
+  updatedBy   String
+
+  company     Company   @relation(fields: [companyId], references: [id])
+  employee    Employee  @relation(fields: [employeeId], references: [id])
+  machine     Machine?  @relation(fields: [machineId], references: [id])
+  process     Process?  @relation(fields: [processId], references: [id])
+  step        Step?     @relation(fields: [stepId], references: [id])
+}
+
+enum approvalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+

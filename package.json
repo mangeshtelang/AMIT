@@ -1,5 +1,5 @@
 {
-  "name": "amit",
+  "name": "Advance-Manufacturing-Insight-Tracking",
   "version": "1.0.0",
   "description": "advance manufacturing insight & tracking application",
   "license": "ISC",
@@ -19,6 +19,23 @@
   },
   "homepage": "https://github.com/mangeshtelang/AMIT#readme",
   "dependencies": {
-    "express": "^5.2.1"
+    "@prisma/client": "^6.19.0",
+    "bcryptjs": "^3.0.3",
+    "compression": "^1.8.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.1",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.3.2",
+    "express-validator": "^7.3.2",
+    "helmet": "^8.1.0",
+    "hpp": "^0.2.3",
+    "joi": "^18.0.2",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.10.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14",
+    "prisma": "6.19"
   }
 }

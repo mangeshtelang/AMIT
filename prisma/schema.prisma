@@ -19,6 +19,13 @@ enum entityStatus {
   INACTIVE
 }
 
+enum approvalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+
 model Company{
 id    String @id @default(uuid())
 legalName String
@@ -292,7 +299,8 @@ model UserProfile {
   updatedBy    String
 
   employee     Employee     @relation(fields: [employeeId], references: [id])
-
+  refreshTokens       RefreshToken[]
+  auditLogs           AuditLog[]
   roles        UserRoleMapping[]
 }
 
@@ -310,7 +318,7 @@ model UserRole {
   company     Company      @relation(fields: [companyId], references: [id])
 
   users       UserRoleMapping[]
-
+  permissions RolePermission[]
   @@unique([companyId, name])
 }
 
@@ -324,6 +332,39 @@ model UserRoleMapping {
   role          UserRole    @relation(fields: [roleId], references: [id])
 
   @@unique([userProfileId, roleId])
+}
+
+model RolePermission {
+  id          String   @id @default(uuid())
+  roleId      String
+  resource    String
+  action      String
+  description String?
+  isAllowed   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  createdBy   String
+  updatedAt   DateTime     @updatedAt
+  updatedBy   String
+
+  role        UserRole @relation(fields: [roleId], references: [id])
+  @@unique([roleId, resource, action])
+  @@index([roleId])
+}
+
+model RefreshToken {
+  id         String   @id @default(uuid())
+  userId     String
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  isRevoked  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  userAgent  String?
+  ipAddress  String?
+
+  user       UserProfile     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }
 
 model UserWorklog {
@@ -349,9 +390,24 @@ model UserWorklog {
   step        Step?     @relation(fields: [stepId], references: [id])
 }
 
-enum approvalStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId      String?
+  action      String
+  entity      String
+  entityId    String?
+  method      String?
+  route       String?
+  ipAddress   String?
+  userAgent   String?
+  oldValues   Json?
+  newValues   Json?
+  createdAt   DateTime @default(now())
 
+   user      UserProfile? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entity])
+  @@index([action])
+  @@index([createdAt])
+}

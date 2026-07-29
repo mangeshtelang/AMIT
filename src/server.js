@@ -25,7 +25,11 @@ server.listen(PORT, () => {
  * Handle Server Errors
  */
 server.on('error', (error) => {
-  logger.error('Server Error', error);
+  logger.error('Server Error', {
+    message: error.message,
+    stack: error.stack
+  });
+
   process.exit(1);
 });
 
@@ -55,7 +59,11 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
  * Handle Uncaught Exceptions
  */
 process.on('uncaughtException', (error) => {
-  logger.error('Uncaught Exception', error);
+  logger.error('Uncaught Exception', {
+    message: error.message,
+    stack: error.stack
+  });
+
   process.exit(1);
 });
 
@@ -63,7 +71,9 @@ process.on('uncaughtException', (error) => {
  * Handle Unhandled Promise Rejections
  */
 process.on('unhandledRejection', (reason) => {
-  logger.error('Unhandled Promise Rejection', reason);
+  logger.error('Unhandled Promise Rejection', {
+    reason
+  });
 
   server.close(() => {
     process.exit(1);
